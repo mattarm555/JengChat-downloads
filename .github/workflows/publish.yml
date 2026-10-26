@@ -1,0 +1,54 @@
+name: Publish tested friends release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Draft tag tested on your machine and one friend machine
+        required: true
+        type: string
+      pilot_verified:
+        description: Installation, beta-to-beta update, and settings preservation passed on both machines
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: friends-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: ${{ inputs.pilot_verified }}
+    runs-on: ubuntu-latest
+    environment: friends-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Publish selected draft (existing assets are immutable)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: gh release edit "$TAG" --draft=false --prerelease --latest=false
+      - name: Verify public assets and generate one page/feed deployment
+        env:
+          TAG: ${{ inputs.tag }}
+        run: python3 tools/publish_delivery.py --tag "$TAG" --template site --output _site
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+        with:
+          path: _site
+  pages:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+        id: deploy

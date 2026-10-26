@@ -1,0 +1,46 @@
+name: Deploy verified two-version pilot
+on:
+  workflow_dispatch:
+    inputs:
+      baseline:
+        description: Published pilot baseline tag
+        default: v2.1.0-beta.1-pilot
+        required: true
+        type: string
+      target:
+        description: Published pilot update tag
+        default: v2.1.0-beta.2-pilot
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: friends-pages
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify both releases and generate the isolated pilot
+        env:
+          BASELINE: ${{ inputs.baseline }}
+          TARGET: ${{ inputs.target }}
+        run: python3 tools/publish_pilot.py --baseline "$BASELINE" --target "$TARGET"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+        with:
+          path: _site
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+        id: deploy

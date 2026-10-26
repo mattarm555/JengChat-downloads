@@ -38,7 +38,7 @@ def main():
     (output/'pilot/source.txt').write_text(target_url+'\n',encoding='utf-8')
     info={'version':baseline['version'],'installer':assets[baseline['installer']]['browser_download_url'],'sha256':baseline['installer_sha256'],
           'release_url':'https://github.com/'+REPO+'/releases/tag/'+args.baseline,
-          'notes':'INSTALL / UPDATE PILOT â€” ONE FRIEND FIRST\n\nInstall this beta 1 build, choose Update when beta 2 is offered, then choose Restart & Update. Confirm beta 2 is shown, your appearance/audio settings remain, and login, chat, multiplayer, Arena, Roulette and offline chess work. Report the result to the person who shared this link.\n\nBeta 2 switches to the normal friends feed for future releases. Broader distribution waits for this pilot result. These are unsigned testing builds.'}
+          'notes':'INSTALL / UPDATE PILOT - ONE FRIEND FIRST\n\nInstall this beta 1 build, choose Update when beta 2 is offered, then choose Restart & Update. Confirm beta 2 is shown, your appearance/audio settings remain, and login, chat, multiplayer, Arena, Roulette and offline chess work. Report the result to the person who shared this link.\n\nBeta 2 switches to the normal friends feed for future releases. Broader distribution waits for this pilot result. These are unsigned testing builds.'}
     (output/'release.json').write_text(json.dumps(info,indent=2)+'\n',encoding='utf-8')
     # Deliberately omit updates/source.txt: production promotion is still gated.
     print('Verified both pilot releases; normal friends feed remains untouched')

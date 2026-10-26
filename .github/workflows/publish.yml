@@ -6,11 +6,16 @@ on:
         description: Draft tag tested on your machine and one friend machine
         required: true
         type: string
-      pilot_verified:
-        description: Installation, beta-to-beta update, and settings preservation passed on both machines
+      pilot_accepted:
+        description: Installation and updating passed on a second Windows machine; limitations recorded
         required: true
         default: false
         type: boolean
+      settings_check:
+        description: Second-machine settings preservation (record explicit waiver honestly)
+        required: true
+        type: choice
+        options: [verified, waived]
 permissions:
   contents: read
 concurrency:
@@ -18,7 +23,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: ${{ inputs.pilot_verified }}
+    if: ${{ inputs.pilot_accepted }}
     runs-on: ubuntu-latest
     environment: friends-release
     permissions:
@@ -36,7 +41,8 @@ jobs:
       - name: Verify public assets and generate one page/feed deployment
         env:
           TAG: ${{ inputs.tag }}
-        run: python3 tools/publish_delivery.py --tag "$TAG" --template site --output _site
+          SETTINGS_CHECK: ${{ inputs.settings_check }}
+        run: python3 tools/publish_delivery.py --tag "$TAG" --template site --output _site --settings-check "$SETTINGS_CHECK"
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: _site

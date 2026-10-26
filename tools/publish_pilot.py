@@ -29,6 +29,8 @@ def verified(tag):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--baseline',required=True);p.add_argument('--target',required=True);p.add_argument('--output',default='_site');args=p.parse_args()
     baseline,assets,_=verified(args.baseline);target,_,target_url=verified(args.target)
+    number=lambda v:tuple(int(x) for x in re.findall(r'\d+',v))
+    if number(target['version'])<=number(baseline['version']):raise ValueError('Pilot target must be newer')
     if baseline['feed']!='https://mattarm555.github.io/JengChat-downloads/pilot/':raise ValueError('Baseline must use isolated pilot feed')
     if target['feed']!='https://mattarm555.github.io/JengChat-downloads/updates/':raise ValueError('Target must migrate to normal future feed')
     output=pathlib.Path(args.output);shutil.copytree('site',output,dirs_exist_ok=True)
@@ -36,7 +38,7 @@ def main():
     (output/'pilot/source.txt').write_text(target_url+'\n',encoding='utf-8')
     info={'version':baseline['version'],'installer':assets[baseline['installer']]['browser_download_url'],'sha256':baseline['installer_sha256'],
           'release_url':'https://github.com/'+REPO+'/releases/tag/'+args.baseline,
-          'notes':'INSTALL / UPDATE PILOT — ONE FRIEND FIRST\n\nInstall this beta 1 build, choose Update when beta 2 is offered, then choose Restart & Update. Confirm beta 2 is shown, your appearance/audio settings remain, and login, chat, multiplayer, Arena, Roulette and offline chess work. Report the result to the person who shared this link.\n\nBeta 2 switches to the normal friends feed for future releases. Broader distribution waits for this pilot result. These are unsigned testing builds.'}
+          'notes':'INSTALL / UPDATE PILOT â€” ONE FRIEND FIRST\n\nInstall this beta 1 build, choose Update when beta 2 is offered, then choose Restart & Update. Confirm beta 2 is shown, your appearance/audio settings remain, and login, chat, multiplayer, Arena, Roulette and offline chess work. Report the result to the person who shared this link.\n\nBeta 2 switches to the normal friends feed for future releases. Broader distribution waits for this pilot result. These are unsigned testing builds.'}
     (output/'release.json').write_text(json.dumps(info,indent=2)+'\n',encoding='utf-8')
     # Deliberately omit updates/source.txt: production promotion is still gated.
     print('Verified both pilot releases; normal friends feed remains untouched')

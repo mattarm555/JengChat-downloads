@@ -14,5 +14,6 @@ replacement is needed by the tester.
 
 Collect: Windows version, installed version before/after update, decline/reopen,
 successful restart, preserved settings, sign-in/chat/multiplayer smoke checks,
-and offline chess/Stockfish review. Do not collect passwords. Keep the normal
-download rollout gated until the friend result and clean-machine check pass.
+and offline chess/Stockfish review. Do not collect passwords. Record each check separately. The user confirmed second-machine install/update and
+waived its settings check for beta 2; other unreported checks remain unverified.
+Production deployment must retain pilot/source.txt as a pointer to the normal release.

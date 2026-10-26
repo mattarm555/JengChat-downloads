@@ -34,11 +34,11 @@ def generate(release,fetch,template,output):
     output=pathlib.Path(output); output.mkdir(parents=True,exist_ok=True)
     shutil.copytree(template,output,dirs_exist_ok=True)
     (output/'updates').mkdir(exist_ok=True)
-    (output/'updates'/('releases.'+channel+'.json')).write_text(json.dumps(feed,indent=2)+'\n')
-    (output/'updates/source.txt').write_text('https://github.com/'+REPO+'/releases/download/'+release['tag_name']+'/\n')
+    (output/'updates'/('releases.'+channel+'.json')).write_text(json.dumps(feed,indent=2)+'\n',encoding='utf-8')
+    (output/'updates/source.txt').write_text('https://github.com/'+REPO+'/releases/download/'+release['tag_name']+'/\n',encoding='utf-8')
     info={'version':meta['version'],'installer':assets[meta['installer']]['browser_download_url'],'sha256':meta['installer_sha256'],
           'notes':meta['notes'],'release_url':release['html_url'],'commit':meta['commit']}
-    (output/'release.json').write_text(json.dumps(info,indent=2)+'\n')
+    (output/'release.json').write_text(json.dumps(info,indent=2)+'\n',encoding='utf-8')
     print('Verified assets and generated page/feed for '+meta['version'])
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--tag',required=True);p.add_argument('--template',required=True);p.add_argument('--output',required=True)

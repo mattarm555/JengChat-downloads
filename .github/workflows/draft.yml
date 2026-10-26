@@ -34,7 +34,7 @@ jobs:
       - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
         with:
           msystem: UCRT64
-          location: C:\
+          release: false
           update: true
       - name: Restore checksum-pinned UCRT64 dependencies
         shell: pwsh
@@ -47,6 +47,11 @@ jobs:
       - name: Build verified installer
         shell: pwsh
         run: python tools/build_release.py
+      - name: Exercise native update downloads and failure recovery
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          python tests/verify_updates.py --releases "dist/$version/releases"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: friends-release

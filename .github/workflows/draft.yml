@@ -25,6 +25,7 @@ jobs:
           SOURCE_TAG: ${{ inputs.source_tag }}
         run: |
           $version = (Get-Content VERSION -Raw).Trim()
+          "RELEASE_DIR=dist/$version/releases" >> $env:GITHUB_ENV
           if ($env:SOURCE_TAG -ne ('v'+$version)) { throw 'Tag does not match VERSION' }
           git merge-base --is-ancestor HEAD origin/main
           if ($LASTEXITCODE) { throw 'Release source must be merged into main' }
@@ -51,11 +52,12 @@ jobs:
         shell: pwsh
         run: |
           $version = (Get-Content VERSION -Raw).Trim()
+          "RELEASE_DIR=dist/$version/releases" >> $env:GITHUB_ENV
           python tests/verify_updates.py --releases "dist/$version/releases"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: friends-release
-          path: dist/*/releases/*
+          path: ${{ env.RELEASE_DIR }}/*
           if-no-files-found: error
   draft:
     needs: build

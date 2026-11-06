@@ -11,6 +11,11 @@ on:
         required: true
         default: false
         type: boolean
+      beta5_pilot_waived:
+        description: Owner-approved one-time second-machine pilot waiver for v2.1.0-beta.5 only
+        required: false
+        default: false
+        type: boolean
       settings_check:
         description: Second-machine settings preservation (record explicit waiver honestly)
         required: true
@@ -23,7 +28,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: ${{ inputs.pilot_accepted }}
+    if: ${{ inputs.pilot_accepted || (inputs.tag == 'v2.1.0-beta.5' && inputs.beta5_pilot_waived) }}
     runs-on: ubuntu-latest
     environment: friends-release
     permissions:
@@ -42,7 +47,8 @@ jobs:
         env:
           TAG: ${{ inputs.tag }}
           SETTINGS_CHECK: ${{ inputs.settings_check }}
-        run: python3 tools/publish_delivery.py --tag "$TAG" --template site --output _site --settings-check "$SETTINGS_CHECK"
+          PILOT_CHECK: ${{ inputs.pilot_accepted && 'passed' || 'waived' }}
+        run: python3 tools/publish_delivery.py --tag "$TAG" --template site --output _site --settings-check "$SETTINGS_CHECK" --pilot-check "$PILOT_CHECK"
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: _site

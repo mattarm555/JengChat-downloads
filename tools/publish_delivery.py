@@ -3,7 +3,9 @@ import argparse,hashlib,html,json,pathlib,urllib.request,urllib.parse,shutil
 REPO='mattarm555/JengChat-downloads'
 def get(url):
     with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'JengChat-delivery'}),timeout=120) as r: return r.read()
-def generate(release,fetch,template,output,settings_check=None):
+def generate(release,fetch,template,output,settings_check=None,pilot_check='passed'):
+    if pilot_check not in ('passed','waived'): raise ValueError('Invalid pilot acceptance status')
+    if pilot_check=='waived' and release['tag_name']!='v2.1.0-beta.5': raise ValueError('Pilot waiver is approved for beta 5 only')
     if release.get('draft') or not release.get('prerelease'): raise ValueError('Select a published friends-testing prerelease')
     assets={a['name']:a for a in release['assets']}
     def asset(name):
@@ -43,12 +45,13 @@ def generate(release,fetch,template,output,settings_check=None):
           'notes':meta['notes'],'release_url':release['html_url'],'commit':meta['commit']}
     if settings_check is not None:
         if settings_check not in ('verified','waived'): raise ValueError('Invalid acceptance status')
-        info['acceptance']={'second_machine_install_update':'passed','second_machine_settings':settings_check}
+        info['acceptance']={'second_machine_install_update':pilot_check,'second_machine_settings':settings_check}
     (output/'release.json').write_text(json.dumps(info,indent=2)+'\n',encoding='utf-8')
     print('Verified assets and generated page/feed for '+meta['version'])
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--tag',required=True);p.add_argument('--template',required=True);p.add_argument('--output',required=True)
     p.add_argument('--settings-check',choices=['verified','waived'],required=True)
+    p.add_argument('--pilot-check',choices=['passed','waived'],default='passed')
     args=p.parse_args()
     release=json.loads(get('https://api.github.com/repos/'+REPO+'/releases/tags/'+urllib.parse.quote(args.tag,safe='')))
-    generate(release,get,args.template,args.output,args.settings_check)
+    generate(release,get,args.template,args.output,args.settings_check,args.pilot_check)

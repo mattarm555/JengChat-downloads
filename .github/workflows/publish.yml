@@ -16,6 +16,11 @@ on:
         required: false
         default: false
         type: boolean
+      v3_beta1_pilot_waived:
+        description: Owner-approved one-time second-machine pilot waiver for v3.0.0-beta.1 only
+        required: false
+        default: false
+        type: boolean
       settings_check:
         description: Second-machine settings preservation (record explicit waiver honestly)
         required: true
@@ -28,7 +33,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: ${{ inputs.pilot_accepted || (inputs.tag == 'v2.1.0-beta.5' && inputs.beta5_pilot_waived) }}
+    if: ${{ inputs.pilot_accepted || (inputs.tag == 'v2.1.0-beta.5' && inputs.beta5_pilot_waived) || (inputs.tag == 'v3.0.0-beta.1' && inputs.v3_beta1_pilot_waived) }}
     runs-on: ubuntu-latest
     environment: friends-release
     permissions:

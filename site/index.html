@@ -1,17 +1,159 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow,noarchive"><meta name="color-scheme" content="dark">
-<title>JengChat — Friends Testing</title><link rel="stylesheet" href="style.css"></head>
-<body><main><header><span class="badge">FRIENDS TESTING · WINDOWS</span><div class="logo">JENG<span>CHAT</span></div>
-<h1>Your next game starts<br>with a conversation.</h1><p class="lead">Chat, play a round, and stay together. Install JengChat once.<br>Future updates arrive right inside the app.</p></header>
-<section class="download" aria-labelledby="download-title"><div><h2 id="download-title">A seat at the table.</h2><p id="version" role="status">Checking the current testing release…</p></div>
-<a id="download" class="button" hidden>Download for Windows</a><p id="status">The installer will appear after the release is verified.</p>
-<p class="small">Windows 10/11 · 64-bit · No developer tools needed</p></section>
-<section class="steps"><article><span>01</span><h2>Install once.</h2><p>Download and run Setup. Open JengChat from its new desktop or Start menu shortcut.</p></article>
-<article><span>02</span><h2>Make yourself at home.</h2><p>Sign in with your JengChat account to chat and play. Offline chess practice is available without signing in.</p></article>
-<article><span>03</span><h2>Stay up to date.</h2><p>JengChat asks before updating. Read what changed, update when ready, or choose Not now.</p></article></section>
-<section class="notes"><h2>What’s new</h2><pre id="notes">Release notes load with the current download.</pre><a id="release" hidden>Release files and checksums ↗</a><details><summary>Verify your download</summary><p>Installer SHA-256:</p><code id="checksum"></code></details></section>
-<section class="fine"><h2>Already using a JengChat folder?</h2><p>Install this version once and switch to the new shortcut. Your saved appearance and audio settings carry over. Keep your old folder until you have checked the new installation.</p>
-<p>This is an unsigned testing build. Windows may show an unknown-publisher warning. Verify the download source and checksum; no SmartScreen approval is claimed.</p>
-<p>This link is intended for friends, but downloads are publicly accessible to anyone who receives or discovers it. Sharing the link does not grant access to your JengChat account.</p></section>
-<footer>JENGCHAT · Friends testing<span>Connect. Chat. Play.</span></footer></main><script src="app.js"></script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14201a">
+<meta name="description" content="JengChat is a Windows app where our group of friends chats and plays: a 3D Lounge, Blackjack, Poker and Roulette with dealers, chess, tank battles and an AI in the chat.">
+<!-- Live status feed: served by JengBot (cogs/server_status.py) through Tailscale Funnel; format in README.md. Empty keeps the panel in its "not connected" state. -->
+<meta name="jengchat-status" content="https://jengcomputer.tailc57584.ts.net:8443/jengchat-status.json">
+<title>JengChat · Chat and game nights for friends, on Windows</title>
+<link rel="preload" href="fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the page</a>
+
+<header class="nav">
+  <div class="wrap nav__row">
+    <a class="nav__brand" href="#top" aria-label="JengChat, back to the top"><span class="j">JENG</span>CHAT</a>
+    <nav class="nav__links" aria-label="Sections">
+      <a href="#lounge">Lounge</a>
+      <a href="#tables">Tables</a>
+      <a href="#chess">Chess</a>
+      <a href="#more">Arena and AI</a>
+    </nav>
+    <a class="btn btn--small" href="#download">Get the installer</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero__grid">
+      <article class="invite" data-enter>
+        <p class="invite__brand" aria-hidden="true"><span class="j">JENG</span>CHAT</p>
+        <h1>Chat and game nights for our group of friends</h1>
+        <p class="invite__line">You're invited to the Lounge.</p>
+        <span class="invite__rule" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 0 10 6l6 2-6 2-2 6-2-6-6-2 6-2Z"/></svg></span>
+        <p class="invite__body">One Windows app for the usual crowd: a 3D room to hang out in, card tables with dealers, chess, tank battles and an AI that answers in the chat.</p>
+        <div class="invite__rsvp">
+          <a class="btn" href="#download">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14"/></svg>
+            Download for Windows
+          </a>
+          <p class="invite__fact"><span data-version>Version 3</span> · Windows 10 and 11, 64-bit · free</p>
+        </div>
+      </article>
+      <figure class="frame frame--hero" data-enter>
+        <img src="img/lounge.webp" width="1600" height="884" alt="The JengChat Lounge: friends' avatars walk between the chess, blackjack, poker and roulette tables in a wood-floored room." fetchpriority="high">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="lounge" aria-labelledby="lounge-title">
+    <div class="wrap split">
+      <div class="split__text">
+        <h2 id="lounge-title">The 3D Lounge</h2>
+        <p class="lede">Everyone who's signed in walks around one room. Wave, cheer or dance, then walk up to a table to start a game.</p>
+        <aside class="live" id="live" aria-labelledby="live-title" data-state="off">
+          <div class="live__head">
+            <h3 id="live-title">In the Lounge right now</h3>
+            <span class="live__server"><i aria-hidden="true"></i><span id="live-server">Not connected</span></span>
+          </div>
+          <p class="live__count" id="live-count" aria-live="polite">The live list shows here once the status feed is set up.</p>
+          <ul class="live__people" id="live-people"></ul>
+          <p class="live__time" id="live-time"></p>
+        </aside>
+      </div>
+      <figure class="frame split__pic">
+        <img src="img/lounge-friends.webp" width="1280" height="720" loading="lazy" alt="Friends' avatars on the sofas in the Lounge, next to the blackjack and poker tables, with chat bubbles over their heads.">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section section--felt" id="tables" aria-labelledby="tables-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="tables-title">Blackjack, Poker and Roulette tables</h2>
+        <p class="lede">Each table has a dealer who deals the cards, spins the wheel and rakes the chips. Up to six friends sit at a table.</p>
+      </div>
+      <div class="deal" data-moment="deal">
+        <figure class="frame deal__a"><img src="img/poker.webp" width="1440" height="905" loading="lazy" alt="Texas Hold'em at the 3D poker table on the river, with a pot of 120 chips and the dealer behind the cards."></figure>
+        <figure class="frame deal__b"><img src="img/roulette.webp" width="1440" height="905" loading="lazy" alt="The croupier rakes the losing chips off the roulette layout after the ball lands on 17."></figure>
+        <figure class="frame deal__c"><img src="img/blackjack.webp" width="959" height="603" loading="lazy" alt="A six-seat blackjack table where the dealer finished on 18."></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="chess" aria-labelledby="chess-title">
+    <div class="wrap split split--flip">
+      <figure class="frame split__pic">
+        <img src="img/chess.webp" width="1600" height="884" loading="lazy" alt="A chess game at a 3D table in the Lounge, with a chess clock beside the board and the move list on the right.">
+      </figure>
+      <div class="split__text">
+        <h2 id="chess-title">Chess with clocks, puzzles and JengEngine</h2>
+        <p class="lede">Play a friend at a 3D table with a real chess clock, or practise against JengEngine, the app's own chess engine, when nobody's online.</p>
+        <ul class="facts">
+          <li>Timed and untimed games, with spectators</li>
+          <li>Rated puzzles in Learn</li>
+          <li>Game review with Stockfish</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="more" aria-labelledby="more-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="more-title">JENG ARENA and JengGPT</h2>
+        <p class="lede">Drive a tank against your friends in JENG ARENA. Ask JengGPT anything in the chat, and it answers there for everyone.</p>
+      </div>
+      <div class="pair">
+        <figure class="frame"><img src="img/arena.webp" width="1280" height="720" loading="lazy" alt="A JENG ARENA match at night: a blue tank on a moonlit field with the score at the top."></figure>
+        <figure class="frame"><img src="img/jenggpt.webp" width="1280" height="720" loading="lazy" alt="JengGPT replying to a question in the JengChat chat panel."></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--card" id="download" aria-labelledby="download-title">
+    <div class="wrap getit">
+      <div class="getit__main">
+        <h2 id="download-title">Download JengChat for Windows</h2>
+        <p class="lede" id="version" role="status">Checking the current release…</p>
+        <a id="download-button" class="btn btn--big" hidden>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14"/></svg>
+          Download for Windows
+        </a>
+        <p class="getit__status" id="status">The installer appears here once the release is checked.</p>
+        <details class="notes">
+          <summary>What's new in this version</summary>
+          <pre id="notes">The release notes load with the download.</pre>
+        </details>
+      </div>
+      <aside class="matchbook" aria-label="Before you install">
+        <div class="matchbook__cover" aria-hidden="true"><span class="j">JENG</span>CHAT</div>
+        <dl class="matchbook__in">
+          <dt>Already have JengChat?</dt>
+          <dd>Don't reinstall. Open it and it offers the update itself, after asking you first. Your settings stay.</dd>
+          <dt>Windows warning</dt>
+          <dd>The installer isn't signed, so Windows may say "unknown publisher". Choose More info, then Run anyway.</dd>
+          <dt>Check the file</dt>
+          <dd>Installer SHA-256: <code id="checksum">loads with the release</code></dd>
+          <dd><a id="release" class="link" hidden>All release files and checksums</a></dd>
+        </dl>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__row">
+    <p><span class="j">JENG</span>CHAT · made for friends · Windows 10 and 11</p>
+    <p>This page is meant for friends, but anyone with the link can download. Downloading doesn't give access to anyone's account.</p>
+  </div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

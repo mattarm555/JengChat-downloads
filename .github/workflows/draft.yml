@@ -81,6 +81,10 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
         run: gh run download "$RUN_ID" --name friends-release --dir release
+      - name: Name the installer JengChat-setup.exe
+        run: |
+          python3 -m unittest discover -s tests
+          python3 tools/name_installer.py --releases release --name JengChat-setup.exe
       - name: Check the assets with the real publisher before any draft exists
         env:
           SOURCE_TAG: ${{ inputs.source_tag }}

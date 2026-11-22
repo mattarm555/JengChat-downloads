@@ -20,4 +20,6 @@ The Lounge section has an "In the Lounge right now" panel. It stays in its "Not 
 {"server": "online", "players": ["amy", "bob"], "updated": "2026-11-22T17:30:00Z"}
 ```
 
-`server` is `online` or `offline`, `players` holds up to 60 account names of at most 32 characters, and `updated` is when the feed was last refreshed (the page marks data older than five minutes as possibly out of date). The page polls every 30 seconds while it is visible. The game server's `STATUS|<token>` query needs a secret token, so the browser never talks to the game server directly: something trusted (the Discord bot or a small job on the server VM) has to publish this JSON.
+`server` is `online` or `offline`, `players` holds up to 60 account names of at most 32 characters (or `null` when the server answered but the list didn't), and `updated` is when the feed was last refreshed (the page marks data older than five minutes as possibly out of date). The page polls every 30 seconds while it is visible. The game server's `STATUS|<token>` query needs a secret token, so the browser never talks to the game server directly: something trusted has to publish this JSON.
+
+The feed is served by JengBot (`mattarm555/discordBotGoogle2`, `cogs/server_status.py`) on the owner's PC `jengcomputer`: the bot checks the game server every minute and serves the result at `http://127.0.0.1:8790/jengchat-status.json`, which Tailscale Funnel publishes as `https://jengcomputer.tailc57584.ts.net:8443/jengchat-status.json`. When that PC or the bot is off, the panel says "Status unavailable".

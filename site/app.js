@@ -32,7 +32,7 @@ const RELEASES = '/mattarm555/JengChat-downloads/releases/';
 })();
 
 // Live status: an https feed returning
-// {"server":"online"|"offline","players":["name",...],"updated":"ISO time"}.
+// {"server":"online"|"offline","players":["name",...] or null,"updated":"ISO time"}.
 (() => {
   const meta = document.querySelector('meta[name="jengchat-status"]');
   const source = meta && meta.content.trim();
@@ -69,7 +69,8 @@ const RELEASES = '/mattarm555/JengChat-downloads/releases/';
       const response = await fetch(feed.href, { cache: 'no-store', credentials: 'omit' });
       if (!response.ok) throw Error('feed');
       const data = await response.json();
-      const players = Array.isArray(data.players)
+      const listed = Array.isArray(data.players);
+      const players = listed
         ? data.players.filter((p) => typeof p === 'string' && p.length > 0 && p.length <= 32).slice(0, 60)
         : [];
       const at = new Date(data.updated);
@@ -77,6 +78,10 @@ const RELEASES = '/mattarm555/JengChat-downloads/releases/';
       const stamp = isNaN(at) ? '' : 'Updated ' + time.format(at) + (fresh ? '' : ' · this may be out of date');
       if (data.server !== 'online') {
         show('offline', 'Server offline', [document.createTextNode('The server is down right now. Check back soon.')], [], stamp);
+        return;
+      }
+      if (!listed) {
+        show('online', 'Server online', [document.createTextNode("The player list isn't available right now.")], [], stamp);
         return;
       }
       const b = document.createElement('b');

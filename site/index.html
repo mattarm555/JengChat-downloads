@@ -124,7 +124,7 @@
         <p class="lede" id="version" role="status">Checking the current release…</p>
         <a id="download-button" class="btn btn--big" hidden>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14"/></svg>
-          Download for Windows
+          <span id="download-label">Download for Windows</span>
         </a>
         <p class="getit__status" id="status">The installer appears here once the release is checked.</p>
         <details class="notes">
@@ -140,7 +140,7 @@
           <dt>Windows warning</dt>
           <dd>The installer isn't signed, so Windows may say "unknown publisher". Choose More info, then Run anyway.</dd>
           <dt>Check the file</dt>
-          <dd>Installer SHA-256: <code id="checksum">loads with the release</code></dd>
+          <dd><span id="checksum-label">Installer</span> SHA-256: <code id="checksum">loads with the release</code></dd>
           <dd><a id="release" class="link" hidden>All release files and checksums</a></dd>
         </dl>
       </aside>

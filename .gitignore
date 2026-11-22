@@ -1,2 +1,8 @@
 __pycache__/
 _site/
+.impeccable/config.local.json
+.impeccable/samples/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/review/
+.taste-skill/

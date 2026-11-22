@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       source_tag:
-        description: Reviewed JengChat source tag, for example v2.1.0-beta.1
+        description: Reviewed JengChat source tag, for example v3.0.0-beta.1
         required: true
         type: string
 permissions:
@@ -12,7 +12,7 @@ jobs:
   build:
     environment: friends-release
     runs-on: windows-2022
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -31,6 +31,7 @@ jobs:
           if ($env:SOURCE_TAG -ne ('v'+$version)) { throw 'Tag does not match VERSION' }
           git merge-base --is-ancestor HEAD origin/main
           if ($LASTEXITCODE) { throw 'Release source must be merged into main' }
+          if (!(Test-Path client-godot/tools/build_release.py)) { throw 'This workflow builds the Godot client (3.0.0 and later)' }
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.13.7'
@@ -39,23 +40,25 @@ jobs:
           msystem: UCRT64
           release: false
           update: true
-      - name: Restore checksum-pinned UCRT64 dependencies
-        shell: pwsh
-        run: python tools/restore_windows_toolchain.py
-      - name: Verify engines, game rendering, and delivery behavior
+          install: mingw-w64-ucrt-x86_64-gcc
+      - name: Restore pinned Stockfish and Godot 4.7.2 mono with its export templates
         shell: pwsh
         run: |
-          ./tools/setup_ci_rendering.ps1
-          ./tools/verify_release.ps1
-      - name: Build verified installer
-        shell: pwsh
-        run: python tools/build_release.py
-      - name: Exercise native update downloads and failure recovery
+          python tools/setup_stockfish.py
+          if ($LASTEXITCODE) { throw 'Stockfish restore failed' }
+          python client-godot/tools/setup_godot.py --github-env
+          if ($LASTEXITCODE) { throw 'Godot restore failed' }
+      - name: Verify JengEngine and the client's protocol, settings and update rules
         shell: pwsh
         run: |
-          $version = (Get-Content VERSION -Raw).Trim()
-          "RELEASE_DIR=dist/$version/releases" >> $env:GITHUB_ENV
-          python tests/verify_updates.py --releases "dist/$version/releases"
+          ./build_engine.ps1
+          dotnet run --project client-godot/tests/NetTests
+          if ($LASTEXITCODE) { throw 'NetTests failed' }
+      - name: Build the installer and update packages (publishes nothing)
+        shell: pwsh
+        run: |
+          python client-godot/tools/build_release.py --godot "$env:GODOT"
+          if ($LASTEXITCODE) { throw 'Release build failed' }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: friends-release
@@ -69,12 +72,19 @@ jobs:
       contents: write
       actions: read
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Download validated artifacts
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
         run: gh run download "$RUN_ID" --name friends-release --dir release
+      - name: Check the assets with the real publisher before any draft exists
+        env:
+          SOURCE_TAG: ${{ inputs.source_tag }}
+        run: python3 tools/check_draft.py --releases release --tag "$SOURCE_TAG" --output _check
       - name: Create draft prerelease (never publish here)
         env:
           GH_TOKEN: ${{ github.token }}

@@ -3,6 +3,17 @@ import argparse,hashlib,html,json,pathlib,urllib.request,urllib.parse,shutil
 REPO='mattarm555/JengChat-downloads'
 def get(url):
     with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'JengChat-delivery'}),timeout=120) as r: return r.read()
+def fingerprint(output):
+    """Add ?v=<content hash> to the page's links to its own files, so browsers fetch a changed file
+    instead of reusing an old copy (GitHub Pages lets them cache files for 10 minutes)."""
+    import re
+    output=pathlib.Path(output); page=output/'index.html'
+    def tag(m):
+        path=output/m.group(2)
+        # Fonts keep the URL style.css loads them by, so their preloads still match.
+        if '://' in m.group(2) or m.group(2).startswith('fonts/') or not path.is_file(): return m.group(0)
+        return f'{m.group(1)}="{m.group(2)}?v={hashlib.sha256(path.read_bytes()).hexdigest()[:10]}"'
+    page.write_text(re.sub(r'\b(href|src)="([A-Za-z0-9][A-Za-z0-9_./-]*)"',tag,page.read_text(encoding='utf-8')),encoding='utf-8')
 def generate(release,fetch,template,output,settings_check=None,pilot_check='passed'):
     if pilot_check not in ('passed','waived'): raise ValueError('Invalid pilot acceptance status')
     # Owner-approved one-time waivers: beta 5, and 3.0.0-beta.1 (the Raylib-to-Godot update can only be
@@ -37,6 +48,7 @@ def generate(release,fetch,template,output,settings_check=None,pilot_check='pass
     if meta['installer_sha256']!=checks[meta['installer']]: raise ValueError('Installer checksum mismatch')
     output=pathlib.Path(output); output.mkdir(parents=True,exist_ok=True)
     shutil.copytree(template,output,dirs_exist_ok=True)
+    fingerprint(output)
     (output/'updates').mkdir(exist_ok=True)
     (output/'updates'/('releases.'+channel+'.json')).write_text(json.dumps(feed,indent=2)+'\n',encoding='utf-8')
     (output/'updates/source.txt').write_text('https://github.com/'+REPO+'/releases/download/'+release['tag_name']+'/\n',encoding='utf-8')

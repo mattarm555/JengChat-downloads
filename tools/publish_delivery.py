@@ -17,8 +17,9 @@ def fingerprint(output):
 def generate(release,fetch,template,output,settings_check=None,pilot_check='passed'):
     if pilot_check not in ('passed','waived'): raise ValueError('Invalid pilot acceptance status')
     # Owner-approved one-time waivers: beta 5, and 3.0.0-beta.1 (the Raylib-to-Godot update can only be
-    # exercised against the live feed, so it was released untested on a second machine).
-    if pilot_check=='waived' and release['tag_name'] not in ('v2.1.0-beta.5','v3.0.0-beta.1'): raise ValueError('Pilot waiver is approved for beta 5 and 3.0.0-beta.1 only')
+    # exercised against the live feed, so it was released untested on a second machine), and 3.0.0-beta.2
+    # (waived by the owner on 2026-11-25).
+    if pilot_check=='waived' and release['tag_name'] not in ('v2.1.0-beta.5','v3.0.0-beta.1','v3.0.0-beta.2'): raise ValueError('Pilot waiver is approved for beta 5, 3.0.0-beta.1 and 3.0.0-beta.2 only')
     if release.get('draft') or not release.get('prerelease'): raise ValueError('Select a published friends-testing prerelease')
     assets={a['name']:a for a in release['assets']}
     def asset(name):

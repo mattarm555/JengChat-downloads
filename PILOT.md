@@ -20,4 +20,8 @@ For 3.0.0-beta.1 (Raylib to Godot) the owner waived the second-machine pilot and
 settings check on 2026-11-22. The owner installed it on their own PC, and the
 local `verify_updates.py` (13/13) and `verify_raylib_migration.py` (6/6) passed,
 but no second machine has installed or updated it.
+For 3.0.0-beta.2 the owner waived the second-machine pilot and settings check on
+2026-11-25. The local `verify_updates.py` passed 13/13 on development builds of
+the same source; no second machine has installed or updated it. Later versions
+need the pilot again.
 Production deployment must retain pilot/source.txt as a pointer to the normal release.

@@ -26,8 +26,11 @@ class PilotWaiverTests(unittest.TestCase):
     def test_beta_5_waiver_still_holds(self):
         self.assertIn("published friends-testing prerelease", error("v2.1.0-beta.5", "waived"))
 
+    def test_owner_approved_waiver_for_3_0_0_beta_2(self):
+        self.assertIn("published friends-testing prerelease", error("v3.0.0-beta.2", "waived"))
+
     def test_no_waiver_for_other_versions(self):
-        self.assertIn("Pilot waiver", error("v3.0.0-beta.2", "waived"))
+        self.assertIn("Pilot waiver", error("v3.0.0-beta.3", "waived"))
 
 
 if __name__ == "__main__":

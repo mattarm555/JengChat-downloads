@@ -8,6 +8,30 @@ Build friends draft accepts a reviewed source tag. Publish tested friends releas
 
 Build friends draft now builds the Godot client (`client-godot/tools/build_release.py` in the source tag), with pinned Godot 4.7.2 mono and export templates (`client-godot/tools/setup_godot.py`). Before creating the draft it runs the unchanged publisher on the built files (`tools/check_draft.py`), so a release the publish workflow would reject never becomes a draft. The package id, channel and feed are the same as 2.x (`JengChat.Friends`, `friends-win-x64`, `/updates/`), so installed 2.x copies are offered 3.0.0 as a normal update. The pilot (PILOT.md) is that update on a friend's machine: 2.1.0-beta.6 to 3.0.0-beta.1.
 
+## JengParty (`party/`)
+
+JengParty is a separate game with its own private source repository (`mattarm555/JengParty`). It is published here too, so friends can download it, and JengChat will install it with one click (JengParty's `DISTRIBUTION.md`).
+
+- **Tags:** JengParty releases are tagged `party-v<version>`, so they never clash with JengChat's `v<version>`.
+- **Package:** `JengParty`, channel `party-win-x64`. Its feed is `/party/`.
+- **Build JengParty draft** (`draft-party.yml`):
+  - checks out a reviewed `party-v…` tag that is merged into JengParty's `main`;
+  - copies the avatar models from the JengChat commit that JengParty's `shared/jengchat/SOURCE.md` names, and they must match the digest recorded there;
+  - runs JengParty's rules and release checks;
+  - builds with `tools/build_release.py`;
+  - names the installer `JengParty-setup.exe`;
+  - runs the real publisher on the files (`tools/check_draft.py --party`);
+  - only then creates a draft prerelease.
+- **Publish tested JengParty release** (`publish-party.yml`):
+  - needs the second-machine pilot to have passed, and no JengParty waiver exists;
+  - publishes the draft and redeploys the whole site.
+- **The site:** it is one Pages deployment for both games.
+  - Publishing JengChat keeps the live JengParty release, and publishing JengParty keeps the live JengChat release. Whatever is kept is fetched and verified again from its release assets.
+  - `party/` holds:
+    - `source.txt` and `releases.party-win-x64.json`: JengParty's update feed;
+    - `release.json`: tag, version, installer URL, SHA-256, size, notes and acceptance. This is what JengChat's Get JengParty button reads.
+  - Before the first JengParty release there is no `party/` folder, and the site is unchanged.
+
 ## The page (`site/`)
 
 The page is static: `index.html`, `style.css`, `app.js`, self-hosted fonts in `site/fonts/` and app screenshots in `site/img/`. Screenshots come only from the client's demo and presentation runs (`--lounge-shot --lounge-demo`, `--chess-shot`, `tests/*Presentation`), with made-up names. `app.js` reads `release.json` (written by `tools/publish_delivery.py`) and accepts installer and release links only from this repository's releases. The design rules are in `DESIGN.md`.

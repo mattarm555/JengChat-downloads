@@ -1,0 +1,112 @@
+name: Build JengParty draft
+on:
+  workflow_dispatch:
+    inputs:
+      source_tag:
+        description: Reviewed JengParty source tag, for example party-v0.1.0-beta.1
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  build:
+    environment: friends-release
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      # JengParty and JengChat sit side by side, so JengParty's checkout stays clean for the release build.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: mattarm555/JengParty
+          ssh-key: ${{ secrets.JENGPARTY_SOURCE_READ_KEY }}
+          ref: ${{ inputs.source_tag }}
+          path: party
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate reviewed source tag and find the avatar commit
+        shell: pwsh
+        working-directory: party
+        env:
+          SOURCE_TAG: ${{ inputs.source_tag }}
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          "RELEASE_DIR=party/dist/$version/releases" >> $env:GITHUB_ENV
+          if ($env:SOURCE_TAG -ne ('party-v'+$version)) { throw 'Tag does not match VERSION' }
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE) { throw 'Release source must be merged into main' }
+          $m = Select-String -Path shared/jengchat/SOURCE.md -Pattern 'Source: JengChat `[^`]+` at `([0-9a-f]+)`\.'
+          if (!$m) { throw 'SOURCE.md names no committed JengChat source for the avatars' }
+          "AVATAR_COMMIT=$($m.Matches[0].Groups[1].Value)" >> $env:GITHUB_ENV
+      # The avatar models are git-ignored in JengParty: they come from the JengChat commit SOURCE.md names
+      # and must match the digest recorded there.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: mattarm555/JengChat
+          ssh-key: ${{ secrets.JENGCHAT_SOURCE_READ_KEY }}
+          path: jengchat
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.13.7'
+      - name: Copy the avatar models and restore pinned Godot 4.7.2 mono with its export templates
+        shell: pwsh
+        run: |
+          git -C jengchat checkout --detach $env:AVATAR_COMMIT
+          if ($LASTEXITCODE) { throw 'The avatar commit is not in JengChat' }
+          python party/tools/sync_avatars.py --jengchat jengchat --models-only
+          if ($LASTEXITCODE) { throw 'The avatar models do not match SOURCE.md' }
+          python jengchat/client-godot/tools/setup_godot.py --github-env
+          if ($LASTEXITCODE) { throw 'Godot restore failed' }
+      - name: Verify the rules and the release checks
+        shell: pwsh
+        working-directory: party
+        run: |
+          dotnet run --project tests/RulesTests
+          if ($LASTEXITCODE) { throw 'RulesTests failed' }
+          python -m unittest discover -s tests -p "test_*.py"
+          if ($LASTEXITCODE) { throw 'Release checks failed' }
+      - name: Build the installer and update packages (publishes nothing)
+        shell: pwsh
+        working-directory: party
+        run: |
+          python tools/build_release.py --godot "$env:GODOT"
+          if ($LASTEXITCODE) { throw 'Release build failed' }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: party-release
+          path: ${{ env.RELEASE_DIR }}/*
+          if-no-files-found: error
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: friends-release
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Download validated artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: gh run download "$RUN_ID" --name party-release --dir release
+      - name: Name the installer JengParty-setup.exe
+        run: |
+          python3 -m unittest discover -s tests
+          python3 tools/name_installer.py --releases release --name JengParty-setup.exe
+      - name: Check the assets with the real publisher before any draft exists
+        env:
+          SOURCE_TAG: ${{ inputs.source_tag }}
+        run: python3 tools/check_draft.py --party --releases release --tag "$SOURCE_TAG" --output _check
+      - name: Create draft prerelease (never publish here)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_TAG: ${{ inputs.source_tag }}
+        run: |
+          python3 -c "import json,pathlib; m=json.loads(pathlib.Path('release/release-metadata.json').read_text()); pathlib.Path('notes.md').write_text(m['notes'])"
+          gh release create "$SOURCE_TAG" release/* --draft --prerelease --latest=false --title "JengParty $SOURCE_TAG — Friends Testing" --notes-file notes.md

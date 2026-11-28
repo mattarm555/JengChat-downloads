@@ -13,6 +13,9 @@ jobs:
     environment: friends-release
     runs-on: windows-2022
     timeout-minutes: 60
+    env:
+      # The release checks import JengParty's tools; bytecode would leave the checkout unclean for build_release.py.
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       # JengParty and JengChat sit side by side, so JengParty's checkout stays clean for the release build.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
